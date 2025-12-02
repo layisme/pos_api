@@ -1,11 +1,8 @@
 openapi: 3.0.0
 info:
-  title: Product API
+  title: POS API 
   version: 1.0.0
 
-servers:
-  - url: https://pos-five-ashy.vercel.app
-  
 components:
   securitySchemes:
     bearerAuth:
