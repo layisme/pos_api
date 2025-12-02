@@ -4,15 +4,10 @@ const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const swaggerUi = require("swagger-ui-express");
-const YAML = require("yamljs");
 
 const User = require("./models/user");
 const auth = require("./middleware/auth");
 const products = require("./data/product");
-
-const path = require("path");
-const swaggerDocument = YAML.load(path.join(__dirname, "swagger.yaml")); // config new swagger path
-
 
 const app = express();
 app.use(cors());
@@ -20,14 +15,99 @@ app.use(express.json());
 
 // MongoDB Connection
 mongoose
-  .connect("mongodb+srv://lay:Lay1711@cluster0.crjdsgb.mongodb.net/posdb?appName=Cluster0")
+  .connect(
+    "mongodb+srv://lay:Lay1711@cluster0.crjdsgb.mongodb.net/posdb?appName=Cluster0"
+  )
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log(err));
 
-// Swagger UI
+// ==================== SWAGGER PROGRAMMATIC SETUP ====================
+const swaggerDocument = {
+  openapi: "3.0.0",
+  info: {
+    title: "POS API",
+    version: "1.0.0",
+    description: "Product API with authentication",
+  },
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
+    },
+  },
+  security: [{ bearerAuth: [] }],
+  paths: {
+    "/auth/register": {
+      post: {
+        summary: "Register a new user",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  email: { type: "string" },
+                  password: { type: "string" },
+                },
+                required: ["email", "password"],
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "User registered successfully" },
+          "400": { description: "Bad request" },
+          "500": { description: "Server error" },
+        },
+      },
+    },
+    "/auth/login": {
+      post: {
+        summary: "Login user",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  email: { type: "string" },
+                  password: { type: "string" },
+                },
+                required: ["email", "password"],
+              },
+            },
+          },
+        },
+        responses: {
+          "200": { description: "Login successful" },
+          "400": { description: "Invalid credentials" },
+          "500": { description: "Server error" },
+        },
+      },
+    },
+    "/products": {
+      get: {
+        summary: "Get all products",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          "200": { description: "List of products" },
+          "401": { description: "Unauthorized" },
+        },
+      },
+    },
+  },
+};
+
+// Swagger UI route
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// ----------------------- AUTH ROUTES -----------------------
+// ==================== AUTH ROUTES ====================
 app.post("/auth/register", async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -75,10 +155,11 @@ app.post("/auth/login", async (req, res) => {
   }
 });
 
-// ----------------------- PRODUCT API -----------------------
+// ==================== PRODUCT ROUTE ====================
 app.get("/products", auth, (req, res) => {
   res.json(products);
 });
 
-// ------------------------------------------------------------
-app.listen(3000, () => console.log("Server running at http://localhost:3000"));
+// ==================== START SERVER ====================
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
