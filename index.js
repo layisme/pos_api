@@ -10,7 +10,9 @@ const User = require("./models/user");
 const auth = require("./middleware/auth");
 const products = require("./data/product");
 
-const swaggerDocument = YAML.load("./swagger.yaml");
+const path = require("path");
+const swaggerDocument = YAML.load(path.join(__dirname, "swagger.yaml"));
+
 
 const app = express();
 app.use(cors());
