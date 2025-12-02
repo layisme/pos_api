@@ -11,7 +11,7 @@ const auth = require("./middleware/auth");
 const products = require("./data/product");
 
 const path = require("path");
-const swaggerDocument = YAML.load(path.join(__dirname, "swagger.yaml"));
+const swaggerDocument = YAML.load(path.join(__dirname, "swagger.yaml")); // config new swagger path
 
 
 const app = express();
